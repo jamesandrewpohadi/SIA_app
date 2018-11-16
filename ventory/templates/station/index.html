@@ -1,0 +1,226 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>SIA Ventory</title>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static "station/style.css" %}">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="{% static "station/dist/calendar-heatmap.min.css" %}">
+        <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+		
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script type='text/javascript' src="{% static 'station/d3fire.min.js' %}"></script>
+  <style>
+  
+  h1 {
+  text-align:center;
+  margin-top:100px;
+  }
+  
+  h4 {
+  text-align: center;
+  }
+  
+  .main-header{
+
+
+    font-size: 15px;
+    top: 0;
+    line-height: 50px;
+    position: fixed;
+    width: 100%;
+    z-index: 2;
+    left: 0;
+    background-color: #022569;
+    height: auto;
+
+}
+
+.main-header__content{
+
+    padding: 5px 5px 10px;
+
+}
+
+.main-header__logo{
+
+    background: url(https://farm1.nzstatic.com/_proxy/imageproxy_1y/serve/singapore-airline-logo.jpg?outputformat=jpg&quality=50&source=3198119&transformationsystem=letterbox&width=600&securitytoken=CFF99CA43D30F5203B82F5ECA07CA934) 0 0 no-repeat;
+    background-size: 150px auto;
+    float: left;
+    position: relative;
+    z-index: 1;
+    width: 150px;
+    height: 75px;
+    opacity: 0.9;
+
+}
+
+.top-nav{
+
+    float: right;
+	margin-right:100px;
+
+}
+
+.top-nav p{
+
+    color: #F39C12;
+    font-size: 16px;
+    float: left;
+
+}
+  </style>
+ 
+</head>
+<body>
+<header class="main-header">
+            <div class="main-header__content">
+                <a class="main-header__logo" href="index.html"></a>
+                <nav class="top-nav">
+                    <p><strong>Ventory<strong></p>
+                </nav>
+            </div>
+        </header>
+<h1>{{station}} Station</h1>
+<h4>Current Inventory</h4>
+  <div id='layout'>
+    <!-- <h2>Bar chart example</h2> -->
+    <div id='container'>
+      <svg />
+    </div>
+  </div>
+  <h4>Loadplan History</h4>
+  <div id="calendar"></div>
+  <h4>Inventory Returned History</h4>
+  <div id="calendar2"></div>
+	{% load static %}
+  <script src="{% static "station/script.js" %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.10.2/d3.min.js" charset="utf-8"></script>
+  <script src="{% static "station/dist/calendar-heatmap.min.js" %}"></script>
+  <script src="{% static "station/dist/calendar-heatmap2.min.js" %}"></script>
+
+  <script>
+    
+      // Initialize random data for the demo
+      var now = moment().endOf('day').toDate();
+      var time_ago = moment().startOf('day').subtract(10, 'year').toDate();
+	  console.log(time_ago);
+      var example_data = d3.timeDays(time_ago, now).map(function (dateElement, index) {
+        return {
+          date: dateElement,
+          details: Array.apply(null, new Array(Math.floor(Math.random() * 15))).map(function(e, i, arr) {
+            return {
+              'name': 'Item ' + Math.ceil(Math.random() * 5),
+              /*'date': function () {
+                var projectDate = new Date(dateElement.getTime());
+                projectDate.setHours(Math.floor(Math.random() * 24));
+                projectDate.setMinutes(Math.floor(Math.random() * 60));
+                return projectDate;
+              }(),*/
+              /*'value': 3600 * ((arr.length - i) / 5) + Math.floor(Math.random() * 3600) * Math.round(Math.random() * (index / 365))*/
+			  'value': Math.floor(Math.random()*3000)
+            }
+          }),
+          init: function () {
+            this.total = this.details.reduce(function (prev, e) {
+              return prev + e.value;
+            }, 0);
+            return this;
+          }
+        }.init();
+      });
+	  console.log(example_data);
+	  var example_data2 = d3.timeDays(time_ago, now).map(function (dateElement, index) {
+        return {
+          date: dateElement,
+          details: Array.apply(null, new Array(Math.floor(Math.random() * 15))).map(function(e, i, arr) {
+            return {
+              'name': 'Item ' + Math.ceil(Math.random() * 5),
+              /*'date': function () {
+                var projectDate = new Date(dateElement.getTime());
+                projectDate.setHours(Math.floor(Math.random() * 24));
+                projectDate.setMinutes(Math.floor(Math.random() * 60));
+                return projectDate;
+              }(),*/
+              /*'value': 3600 * ((arr.length - i) / 5) + Math.floor(Math.random() * 3600) * Math.round(Math.random() * (index / 365))*/
+			  'value': Math.floor(Math.random()*3000)
+            }
+          }),
+          init: function () {
+            this.total = this.details.reduce(function (prev, e) {
+              return prev + e.value;
+            }, 0);
+            return this;
+          }
+        }.init();
+      });
+      // Set the div target id
+      var div_id = 'calendar';
+      // Set custom color for the calendar heatmap
+      var color = '#F39C12';
+      // Set overview type (choices are year, month and day)
+      var overview = 'year';
+      // Handler function
+      var print = function (val) {
+        console.log(val);
+      };
+      // Initialize calendar heatmap
+      calendarHeatmap.init(example_data, div_id, color, overview, print);
+	  calendarHeatmap2.init(example_data2, "calendar2", color, overview, print);
+    ;
+  </script>
+  <script type="text/javascript">
+            var fbase = new Firebase('https://sia-ventory.firebaseio.com/');
+                barGroups.firebase(fbase, {
+                    // How do we identify each data point?
+                    keyFunc : function(dataSnapshot) {
+                        return dataSnapshot.name();
+                    },
+                    // When new data is added to the Firebase
+                    createFunc : function(newData) {
+						if (["state","tracking"].indexOf(newData.name()) == -1 ) {
+							var v = d3.select("#"+newData.name())
+							.transition()
+							.duration(300)
+							.attr('y', yScale(newData.val()))
+							.attr('height',height-yScale(newData.val()));
+							for (var i=0; i<3; i++) {
+								if (sample[i].id == newData.name()) {
+									sample[i].value = newData.val();
+									break;
+								}
+							}
+						}
+						
+                    },
+                    // What to do when a data point has changed
+                    updateFunc : function(newData) {
+                        // Animate the object (this) to the new radius
+                        if (["state","tracking"].indexOf(newData.name()) == -1 ) {
+							var v = d3.select("#"+newData.name())
+							.transition()
+							.duration(300)
+							.attr('y', yScale(newData.val()))
+							.attr('height',height-yScale(newData.val()));
+							for (var i=0; i<3; i++) {
+								if (sample[i].id == newData.name()) {
+									sample[i].value = newData.val();
+									break;
+								}
+							}
+						}
+                    },
+                    // When a data point gets deleted
+                    deleteFunc : function(deletedData) {
+                        // Remove the d3 element (this) 
+                        this.remove();
+                    }
+                });
+               
+            </script>
+
+</body>
+</html>

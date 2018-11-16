@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SIA Ventory</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<style>
+	*{
+	margin:0;
+	padding:0;
+	}
+	
+	body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+.leaflet-control-attribution {
+display:none;
+}
+	
+	svg .tooltip {
+	width:100px;
+	height:100px
+	}
+	
+	.leaflet-control-zoom {
+	top:100px;
+	}
+	
+	.main-header{
+
+
+    font-size: 15px;
+    top: 0;
+    line-height: 50px;
+    position: fixed;
+    width: 100%;
+    z-index: 2;
+    left: 0;
+    background-color: #022569;
+    height: auto;
+
+	}
+
+	.main-header__content{
+
+		padding: 5px 5px 10px;
+
+	}
+
+	.main-header__logo{
+
+    background: url(https://farm1.nzstatic.com/_proxy/imageproxy_1y/serve/singapore-airline-logo.jpg?outputformat=jpg&quality=50&source=3198119&transformationsystem=letterbox&width=600&securitytoken=CFF99CA43D30F5203B82F5ECA07CA934) 0 0 no-repeat;
+    background-size: 150px auto;
+    float: left;
+    position: relative;
+    z-index: 1;
+    width: 150px;
+    height: 75px;
+    opacity: 0.9;
+
+	}
+
+	.top-nav{
+
+    float: right;
+	margin-right:100px;
+
+	}
+
+	.top-nav p{
+
+    color: #F39C12;
+    font-size: 16px;
+    float: left;
+
+	}
+	
+	</style>
+    
+</head>
+<body>
+<header class="main-header">
+            <div class="main-header__content">
+                <a class="main-header__logo" href="index.html"></a>
+                <nav class="top-nav">
+                    <p><strong>Ventory</strong></p>
+                </nav>
+            </div>
+        </header>
+
+	<div id="map" style="width: 100vw; height: 100vh"></div>
+
+	<script type="text/javascript">
+	var bounds = new L.LatLngBounds(new L.LatLng(-60, -180), new L.LatLng(90,180));
+	
+        var map = L.map('map',{
+			maxBounds: bounds,
+			maxBoundsViscosity: 0.75
+}).setView([1.35,103.82], 4);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        /*L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            }).addTo(map);*/
+			L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',{
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+}).addTo(map);
+			
+		map.options.minZoom =2;
+		map.options.maxZoom=12;
+				
+	/* Initialize the SVG layer */
+	map._initPathRoot()    
+
+	/* We simply pick up the SVG from the map object */
+	var svg = d3.select("#map").select("svg"),
+	g = svg.append("g");
+	
+	var div = d3.select("#map").select("svg").append("svg")	;
+    div.attr("class", "tooltip")  
+    .style("opacity", 0)
+	.LatLng = new L.LatLng(0,0);
+	{% load static %}
+	d3.json("{% static "circles.json" %}", function(collection) {
+		/* Add a LatLng object to each item in the dataset */
+		collection.objects.forEach(function(d) {
+			d.LatLng = new L.LatLng(d.circle.coordinates[0],
+									d.circle.coordinates[1])
+			console.log(d);
+		})
+		
+		var feature = g.selectAll("circle")
+			.data(collection.objects)
+			.enter().append("a")
+          .attr("xlink:href", function(d) { return d.circle.link; });
+		  feature.append("circle")
+			.style("stroke", null)  
+			.style("opacity", .6) 
+			.style("fill", function(d) { return d.circle.color; })
+			.attr("r", 20);	
+			feature.append('text')
+			.text(function(d) { return d.circle.name; })
+          .attr('fill', 'white')
+		  .attr('text-anchor', 'middle');
+		
+		map.on("viewreset", update);
+		update();
+
+		function update() {
+			feature.attr("transform", 
+			function(d) { 
+				return "translate("+ 
+					map.latLngToLayerPoint(d.LatLng).x +","+ 
+					map.latLngToLayerPoint(d.LatLng).y +")";
+				}
+			)
+		}
+	})			 
+</script>
+</body>
+</html>
