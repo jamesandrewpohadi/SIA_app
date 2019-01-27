@@ -4,9 +4,9 @@ from django.shortcuts import render
 def index(request):
     return render(request, 'index.html')
 
-def station(request, station):
+def station(request, statio):
     context = {
-        'station':station,
+        'stati':statio,
     }
     return render(request, 'station/index.html', context=context)
     
