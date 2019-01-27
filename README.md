@@ -24,6 +24,7 @@ A prototype device that track amount of inventory by detecting depth of a tray u
 ## Sofware
 - Django
 - D3.js
+- Firebase
 
 ## Team Ventus
 - James Andrew Pohadi
